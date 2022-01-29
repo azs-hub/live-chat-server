@@ -22,14 +22,14 @@ const sendMessage = async (req, res) => {
 };
 
 const getChatMessages = async (req, res) => {
-	const { chat_id } = req.body;
+	const { chat_id } = req.params;
 
 	const query = `SELECT * FROM helpcenter.messages WHERE chat_id=$1;`;
 	const values = [chat_id];
 
 	try {
 		const { rows } = await connectDb.query(query, values);
-		const dbResponse = rows[0];
+		const dbResponse = rows;
 		return res.status(status.created).send(dbResponse);
 	} catch (err) {
 		errorMessage.error = 'Operation was not successful';
@@ -38,5 +38,6 @@ const getChatMessages = async (req, res) => {
 };
 
 export {
-  sendMessage
+  sendMessage,
+  getChatMessages
 };

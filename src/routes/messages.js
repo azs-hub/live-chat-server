@@ -7,16 +7,17 @@ const connectDb = require('../models');
 import { ErrorHandler } from '../utils/errors';
 import { v4 as uuidv4 } from 'uuid';
 
-import { sendMessage } from '../controllers/messagesController';
+import { sendMessage, getChatMessages } from '../controllers/messagesController';
 
 // router.post('/chatroom', createChatRoom);
 router.post('/', authenticateToken, sendMessage);
+router.get('/:chat_id', authenticateToken, getChatMessages);
 
 // use a JWT for message sended by an admin
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization']
   const token = authHeader && authHeader.split(' ')[1]
-
+  console.log('authHeader:', authHeader);
   if (token == null) return res.sendStatus(401)
 
   jwt.verify(token, process.env.TOKEN_SECRET, (err, user) => {
