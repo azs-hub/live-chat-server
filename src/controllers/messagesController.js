@@ -1,9 +1,7 @@
 const connectDb = require('../models');
 
 import Helper from '../utils/helper';
-import {
-  errorMessage, successMessage, status,
-} from '../utils/status';
+import { errorMessage, status } from '../utils/status';
 
 const sendMessage = async (req, res) => {
 	const { content, sendby, chat_id } = req.body;

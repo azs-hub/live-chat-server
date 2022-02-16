@@ -14,8 +14,6 @@ const createChatRoom = async (req, res) => {
 
 	const values = [username, false, 'waiting'];
 
-  console.log("values: ", values);
-
   try {
   	const { rows } = await connectDb.query(createChatQuery, values);
     var data = rows[0];
@@ -67,7 +65,28 @@ const connectChatRoom = async (req, res) => {
   }
 };
 
+const getChatList = async (req, res) => {
+  const { page } = req.params;
+  console.log('-> page', page);
+  const Query = 'SELECT * FROM helpcenter.chats ORDER BY id ASC LIMIT 10 OFFSET (($1 - 1) * 10);';
+  try {
+    const { rows } = await connectDb.query(Query, [page]);
+    const dbResponse = rows;
+    if (!dbResponse) {
+      errorMessage.error = 'Chat does not exist';
+      return res.status(status.notfound).send(errorMessage);
+    }
+    return res.status(status.success).send(dbResponse);
+  } catch (error) {
+    errorMessage.error = 'Operation was not successful';
+    return res.status(status.error).send(errorMessage);
+  }
+};
+
+
+
 export {
   createChatRoom,
-  connectChatRoom
+  connectChatRoom,
+  getChatList
 };

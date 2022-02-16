@@ -50,6 +50,7 @@ const siginUser = async (req, res) => {
   try {
     const { rows } = await connectDb.query(signinUserQuery, [username]);
     const dbResponse = rows[0];
+    console.log('dbResponse:', dbResponse);
     if (!dbResponse) {
       errorMessage.error = 'Username does not exist';
       return res.status(status.notfound).send(errorMessage);
@@ -58,14 +59,18 @@ const siginUser = async (req, res) => {
       errorMessage.error = 'The password you provided is incorrect';
       return res.status(status.bad).send(errorMessage);
     }
+    console.log('---->:');
     const token = Helper.generateToken({
         id: dbResponse.id,
         name: dbResponse.username,
         role: true});
-    delete dbResponse.password;
+    console.log('---->: TOKEN');
     successMessage.data = dbResponse;
+    delete successMessage.data.password;
     successMessage.data.token = token;
+    console.log('successMessage:', successMessage);
     return res.status(status.success).send(successMessage);
+
   } catch (error) {
     errorMessage.error = 'Operation was not successful';
     return res.status(status.error).send(errorMessage);
