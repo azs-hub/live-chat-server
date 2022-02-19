@@ -59,53 +59,65 @@ var io = require('socket.io')(server, {
 
 console.log('io.sockets', io.sockets.sockets);
 
+let users = [];
+let messages = {
+  generale: [],
+  random: [],
+  javascript: [],
+};
+
+// run when a client connect
 io.on('connection', function(socket) {
 
-  console.log('io.sockets A user is connected');
-  console.log(socket.id);
+  socket.on('join server', (username) => {
+    const user = {
+      name: username,
+      id: socket.id
+    };
 
-  socket.on('joinRoom', ({ username, uuid, token }) => {
-
-    console.log('socket, joinRoom', username, uuid, token);
-    // const user = userJoin(socket.id, username, room);
-
-    // socket.join(user.room);
-
-    // // Welcome current user
-    // socket.emit('message', formatMessage(botName, 'Welcome to ChatCord!'));
-
-    // // Broadcast when a user connects
-    // socket.broadcast
-    //   .to(user.room)
-    //   .emit(
-    //     'message',
-    //     formatMessage(botName, `${user.username} has joined the chat`)
-    //   );
-
-    // // Send users and room info
-    // io.to(user.room).emit('roomUsers', {
-    //   room: user.room,
-    //   users: getRoomUsers(user.room)
-    // });
+    console.log('[socket - join] user', user);
+    users.push(user);
+    // tell to all the person connected to the socket
+    io.emit('new user', users);
+  });
+  socket.on('join room', (roomName) => {
+    socket.join(roomName);
+    console.log('[socket - join room] roomName', roomName);
   });
 
-  // when the admin is sending a message
-  // save it on databse by using model
-  // and callback the front-end to get it back
-  socket.on('SEND_MESSAGE', function(data) {
-    console.log('SEND_MESSAGE', data);
-    io.emit('MESSAGE', data)
-  });
-
-  socket.on('CREATE_CHAT', function(data) {
-    console.log('SOCKET ON CREATE_CHAT', data);
-    createChatRoomSocket(data).then((res) => {
-      console.log('SOCKET ON CREATE_CHAT createChatRoomSocket then', res);
-      io.emit('CHAT_CREATED', res)
-    })
-    .catch((err) => {
-      console.log('SOCKET ON CREATE_CHAT createChatRoomSocket catch', err);
-    })
+  // content: msg data
+  // to: chatName || sockId
+  // sender: who send
+  // chatName: room name
+  // isChannel: 
+  socket.on('send msg', ({content, to, sender, chatName, isChannel}) => {
+    console.log('[socket send msg]', isChannel);
     
+    const playload = {
+      content,
+      chatName,
+      sender
+    };
+    socket.to(to).emit('new msg', playload);
+    
+    // }
+    if (messages[chatName]) {
+      messages[chatName].push({
+        sender,
+        content
+      })
+    }
+  });
+
+  socket.on('leave room', () => {
+    console.log('-----> DISCONECT')
+    users = users.filter(u => u.id !== socket.id);
+    io.emit('new user', users);
+  });
+  socket.on('disconnecting', () => {
+    console.log('-----> DISCONECTING', users)
+    users = users.filter(u => u.id !== socket.id);
+    io.emit('new user', users);
+    console.log('-----> DISCONECTING2', users)
   });
 });
